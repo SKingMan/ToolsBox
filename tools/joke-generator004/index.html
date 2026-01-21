@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI笑话生成</title>
+    <style>
+        body {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 0 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #f5f7fa;
+            background-image: linear-gradient(135deg, #fff3e0 0%, #e3f2fd 100%);
+            color: #2c3e50;
+            line-height: 1.6;
+        }
+        h1 {
+            text-align: center;
+            color: #ff9800;
+            margin-bottom: 30px;
+            font-weight: 600;
+            font-size: 2.5em;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+        .input-container {
+            background-color: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05), 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 25px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .input-container:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.12);
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #555;
+        }
+        select, input[type="text"], textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e5ec;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            background-color: #f8fafc;
+            box-sizing: border-box;
+        }
+        select:focus, input[type="text"]:focus, textarea:focus {
+            outline: none;
+            border-color: #ff9800;
+            box-shadow: 0 0 0 3px rgba(255, 152, 0, 0.2);
+        }
+        button {
+            width: 100%;
+            padding: 14px;
+            background-color: #ff9800;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        button:hover {
+            background-color: #f57c00;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        button:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        #result {
+            background-color: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05), 0 1px 3px rgba(0,0,0,0.1);
+            min-height: 100px;
+            transition: all 0.3s ease;
+        }
+        .loading {
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 1.1em;
+            padding: 20px;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
+        }
+        .error {
+            color: #e74c3c;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: #fdf0ed;
+            border-left: 4px solid #e74c3c;
+            margin: 10px 0;
+        }
+        .joke-container {
+            margin-top: 20px;
+        }
+        .joke-item {
+            background-color: #fff3e0;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #ffcc80;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        .joke-item:hover {
+            background-color: #ffe0b2;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        .joke-content {
+            font-size: 16px;
+            line-height: 1.6;
+            margin-bottom: 10px;
+        }
+        .joke-type {
+            font-size: 12px;
+            color: #ff9800;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .laugh-btn {
+            background-color: transparent;
+            border: 1px solid #ff9800;
+            color: #ff9800;
+            padding: 6px 12px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            margin-top: 10px;
+        }
+        .laugh-btn:hover {
+            background-color: #ff9800;
+            color: white;
+        }
+        .back-link {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background-color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-decoration: none;
+            color: #ff9800;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        .back-link:hover {
+            background-color: #f7fbfe;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <a href="../../index.html" class="back-link">← 返回首页</a>
+    <h1>AI笑话生成</h1>
+    <p style="text-align: center; color: #7f8c8d; margin-bottom: 20px; font-size: 1.1em;">使用AI生成有趣的笑话和段子</p>
+    
+    <div class="input-container">
+        <div class="form-group">
+            <label for="jokeType">笑话类型</label>
+            <select id="jokeType">
+                <option value="general">通用笑话</option>
+                <option value="dad">爸爸笑话</option>
+                <option value="pun">谐音梗</option>
+                <option value="tech">科技笑话</option>
+                <option value="animal">动物笑话</option>
+                <option value="school">校园笑话</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="keywords">关键词（可选）</label>
+            <input type="text" id="keywords" placeholder="例如：猫、电脑、考试等">
+        </div>
+        
+        <div class="form-group">
+            <label for="jokeCount">生成数量</label>
+            <select id="jokeCount">
+                <option value="1">1个</option>
+                <option value="3" selected>3个</option>
+                <option value="5">5个</option>
+            </select>
+        </div>
+        
+        <button onclick="generateJokes()" id="generateBtn">生成笑话</button>
+    </div>
+    
+    <div id="result"></div>
+
+    <script>
+        async function generateJokes() {
+            const jokeType = document.getElementById('jokeType').value;
+            const keywords = document.getElementById('keywords').value;
+            const jokeCount = parseInt(document.getElementById('jokeCount').value);
+            const resultDiv = document.getElementById('result');
+            const generateBtn = document.getElementById('generateBtn');
+            
+            generateBtn.disabled = true;
+            resultDiv.innerHTML = '<div class="loading">正在生成笑话，请稍候...</div>';
+            
+            try {
+                // 模拟AI生成笑话的过程
+                await new Promise(resolve => setTimeout(resolve, 1500));
+                
+                // 生成示例笑话
+                const jokes = generateSampleJokes(jokeType, keywords, jokeCount);
+                
+                // 显示结果
+                resultDiv.innerHTML = `
+                    <h3>生成的笑话</h3>
+                    <div class="joke-container">
+                        ${jokes.map(joke => `
+                            <div class="joke-item">
+                                <div class="joke-content">${joke.content}</div>
+                                <div class="joke-type">${joke.type}</div>
+                                <button class="laugh-btn" onclick="laugh(this)">😂 好笑</button>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">错误: ${error.message}</div>`;
+                console.error('Error:', error);
+            } finally {
+                generateBtn.disabled = false;
+            }
+        }
+        
+        function generateSampleJokes(type, keywords, count) {
+            const jokeDatabase = {
+                general: [
+                    "为什么科学家不相信原子？因为它们构成了一切！",
+                    "为什么数学书看起来很伤心？因为它有太多问题。",
+                    "为什么稻草人赢得了诺贝尔奖？因为他在他的领域里很出色！",
+                    "为什么大海是咸的？因为里面有这么多的波浪（泪）。",
+                    "为什么电脑永远不会感冒？因为它有防火墙！"
+                ],
+                dad: [
+                    "我告诉我的妻子她应该把画挂直。她说：“但是它看起来很好。”我回答：“不，它看起来歪了。”然后我意识到我娶了一个艺术评论家。",
+                    "为什么骨架不喜欢打架？因为他们没有胆量。",
+                    "我问我的儿子：“你知道为什么你不应该在树林里和树木争论吗？”他说不知道。我说：“因为它们总是坚持自己的立场。”",
+                    "为什么自行车不能自己站起来？因为它太累了。",
+                    "我告诉我的女儿我发明了一种新的手表。她说：“什么样子的？”我说：“它可以告诉你时间和日期，还可以当指南针用。”她问：“那它叫什么？”我说：“它叫‘时间和地点’。”"
+                ],
+                pun: [
+                    "为什么蜜蜂总是有很多朋友？因为它们很善于社交（social，发音类似“蜂群”）。",
+                    "为什么铅笔不擅长考试？因为它们总是在纸上做标记（mark，也有“分数”的意思）。",
+                    "为什么面包师总是很开心？因为他们每天都在揉面（knead，发音类似“need”）。",
+                    "为什么灯泡喜欢读书？因为它想变得更亮（bright，也有“聪明”的意思）。",
+                    "为什么鱼不喜欢打篮球？因为它们怕被网住（net，也有“篮网”的意思）。"
+                ],
+                tech: [
+                    "为什么程序员总是混淆圣诞节和万圣节？因为 Oct 31 == Dec 25（八进制31等于十进制25）。",
+                    "为什么电脑会感冒？因为它有太多的窗口（windows）开着。",
+                    "为什么程序员不喜欢大自然？因为它有太多的虫子（bugs）。",
+                    "为什么软件工程师喜欢登山？因为他们喜欢挑战高峰（peaks，发音类似“peaks”）。",
+                    "为什么电脑永远不会饥饿？因为它有一个硬盘（hard drive，发音类似“hard to drive”）。"
+                ],
+                animal: [
+                    "为什么猫不喜欢上网？因为它们害怕鼠标。",
+                    "为什么狗喜欢计算机？因为它们喜欢追鼠标。",
+                    "为什么鸟不喜欢电子邮件？因为它们更喜欢叽叽喳喳。",
+                    "为什么鱼不喜欢手机？因为它们怕被钓（hooked，也有“迷上”的意思）。",
+                    "为什么松鼠喜欢坚果？因为它们是坚果专家。"
+                ],
+                school: [
+                    "为什么学生不喜欢数学？因为它有太多的问题。",
+                    "为什么老师喜欢书？因为它们有很多故事。",
+                    "为什么学生喜欢假期？因为他们可以放松。",
+                    "为什么图书馆总是很安静？因为大家都在读书。",
+                    "为什么学生不喜欢考试？因为它们压力很大。"
+                ]
+            };
+            
+            const jokes = jokeDatabase[type] || jokeDatabase.general;
+            const result = [];
+            
+            for (let i = 0; i < jokeCount; i++) {
+                const randomJoke = jokes[Math.floor(Math.random() * jokes.length)];
+                result.push({
+                    content: randomJoke,
+                    type: type === 'general' ? '通用' : 
+                          type === 'dad' ? '爸爸笑话' : 
+                          type === 'pun' ? '谐音梗' : 
+                          type === 'tech' ? '科技' : 
+                          type === 'animal' ? '动物' : '校园'
+                });
+            }
+            
+            return result;
+        }
+        
+        function laugh(button) {
+            button.innerHTML = '😂😂😂 很好笑！';
+            button.style.backgroundColor = '#ff9800';
+            button.style.color = 'white';
+        }
+    </script>
+</body>
+</html>

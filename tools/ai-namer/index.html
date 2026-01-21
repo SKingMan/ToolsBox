@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI起名助手</title>
+    <style>
+        body {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 0 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background-color: #f5f7fa;
+            background-image: linear-gradient(135deg, #e0f2ff 0%, #f0e6ff 100%);
+            color: #2c3e50;
+            line-height: 1.6;
+        }
+        h1 {
+            text-align: center;
+            color: #9b59b6;
+            margin-bottom: 30px;
+            font-weight: 600;
+            font-size: 2.5em;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+        .input-container {
+            background-color: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05), 0 1px 3px rgba(0,0,0,0.1);
+            margin-bottom: 25px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .input-container:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.12);
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #555;
+        }
+        select, input[type="text"], textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e5ec;
+            border-radius: 8px;
+            font-size: 16px;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            background-color: #f8fafc;
+            box-sizing: border-box;
+        }
+        select:focus, input[type="text"]:focus, textarea:focus {
+            outline: none;
+            border-color: #9b59b6;
+            box-shadow: 0 0 0 3px rgba(155, 89, 182, 0.2);
+        }
+        textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+        button {
+            width: 100%;
+            padding: 14px;
+            background-color: #9b59b6;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        button:hover {
+            background-color: #8e44ad;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        button:active {
+            transform: translateY(0);
+        }
+        button:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        #result {
+            background-color: white;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05), 0 1px 3px rgba(0,0,0,0.1);
+            min-height: 100px;
+            transition: all 0.3s ease;
+        }
+        .loading {
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 1.1em;
+            padding: 20px;
+            animation: pulse 1.5s infinite;
+        }
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
+        }
+        .error {
+            color: #e74c3c;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: #fdf0ed;
+            border-left: 4px solid #e74c3c;
+            margin: 10px 0;
+        }
+        .name-list {
+            margin-top: 20px;
+        }
+        .name-item {
+            background-color: #f8f9fa;
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #e9ecef;
+            transition: all 0.2s ease;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .name-item:hover {
+            background-color: #f0f4f8;
+            border-color: #9b59b6;
+        }
+        .copy-btn {
+            background-color: transparent;
+            border: 1px solid #9b59b6;
+            color: #9b59b6;
+            padding: 4px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s ease;
+        }
+        .copy-btn:hover {
+            background-color: #9b59b6;
+            color: white;
+        }
+        .back-link {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background-color: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            text-decoration: none;
+            color: #9b59b6;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        .back-link:hover {
+            background-color: #f7fbfe;
+            transform: translateY(-2px);
+        }
+    </style>
+</head>
+<body>
+    <a href="../../index.html" class="back-link">← 返回首页</a>
+    <h1>AI起名助手</h1>
+    <p style="text-align: center; color: #7f8c8d; margin-bottom: 20px; font-size: 1.1em;">基于AI算法生成创意名字</p>
+    
+    <div class="input-container">
+        <div class="form-group">
+            <label for="nameType">名字类型</label>
+            <select id="nameType">
+                <option value="person">人名</option>
+                <option value="company">公司名</option>
+                <option value="product">产品名</option>
+                <option value="pet">宠物名</option>
+                <option value="other">其他</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="nameLength">名字长度</label>
+            <select id="nameLength">
+                <option value="2">2字</option>
+                <option value="3" selected>3字</option>
+                <option value="4">4字</option>
+                <option value="5+">5字以上</option>
+            </select>
+        </div>
+        
+        <div class="form-group">
+            <label for="keywords">关键词（可选）</label>
+            <input type="text" id="keywords" placeholder="例如：科技、创意、阳光等">
+        </div>
+        
+        <div class="form-group">
+            <label for="requirements">特殊要求（可选）</label>
+            <textarea id="requirements" placeholder="例如：古风风格、有意义、容易记忆等"></textarea>
+        </div>
+        
+        <button onclick="generateNames()" id="generateBtn">生成名字</button>
+    </div>
+    
+    <div id="result"></div>
+
+    <script>
+        async function generateNames() {
+            const nameType = document.getElementById('nameType').value;
+            const nameLength = document.getElementById('nameLength').value;
+            const keywords = document.getElementById('keywords').value;
+            const requirements = document.getElementById('requirements').value;
+            const resultDiv = document.getElementById('result');
+            const generateBtn = document.getElementById('generateBtn');
+            
+            generateBtn.disabled = true;
+            resultDiv.innerHTML = '<div class="loading">正在生成名字，请稍候...</div>';
+            
+            try {
+                // 模拟AI生成名字的过程
+                await new Promise(resolve => setTimeout(resolve, 1500));
+                
+                // 生成示例名字
+                const sampleNames = generateSampleNames(nameType, nameLength, keywords);
+                
+                // 显示结果
+                resultDiv.innerHTML = `
+                    <h3>生成的名字</h3>
+                    <div class="name-list">
+                        ${sampleNames.map(name => `
+                            <div class="name-item">
+                                <span>${name}</span>
+                                <button class="copy-btn" onclick="copyToClipboard('${name}')">复制</button>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">错误: ${error.message}</div>`;
+                console.error('Error:', error);
+            } finally {
+                generateBtn.disabled = false;
+            }
+        }
+        
+        function generateSampleNames(type, length, keywords) {
+            const nameDatabase = {
+                person: ['星辰', '雨桐', '浩然', '梦琪', '子轩', '诗涵', '宇轩', '雨萱', '梓涵', '俊杰'],
+                company: ['科技创新', '未来发展', '星辰大海', '智慧时代', '绿色能源', '数字经济', '创意无限', '梦想启航'],
+                product: ['智能助手', '未来手机', '环保水杯', '创意灯具', '健康手环', '智能音箱', '便携充电宝'],
+                pet: ['小白', '小黑', '花花', '贝贝', '豆豆', '毛毛', '球球', '布丁', '奶茶', '可乐'],
+                other: ['创意空间', '梦想工作室', '未来实验室', '智慧乐园', '快乐星球', '神秘花园']
+            };
+            
+            const names = nameDatabase[type] || nameDatabase.other;
+            const result = [];
+            
+            // 生成10个名字
+            for (let i = 0; i < 10; i++) {
+                let name = '';
+                const randomCount = length === '2' ? 2 : length === '3' ? 3 : length === '4' ? 4 : Math.floor(Math.random() * 3) + 5;
+                
+                for (let j = 0; j < randomCount; j++) {
+                    const randomWord = names[Math.floor(Math.random() * names.length)];
+                    name += randomWord.charAt(Math.floor(Math.random() * randomWord.length));
+                }
+                
+                result.push(name);
+            }
+            
+            return result;
+        }
+        
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                alert('已复制到剪贴板！');
+            }).catch(err => {
+                console.error('复制失败:', err);
+            });
+        }
+    </script>
+</body>
+</html>

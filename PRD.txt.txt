@@ -1,0 +1,80 @@
+工具箱网站 - V1.0
+
+项目概述
+
+创建包含多个AI工具的工具箱网站，每个工具独立页面，通过首页卡片导航访问。
+
+功能需求
+
+1. 首页功能
+
+• 网格布局展示工具卡片
+
+• 每个卡片包含：图标、名称、简短描述
+
+• 点击卡片跳转到对应工具页面
+
+• 响应式设计（电脑3列，平板2列，手机1列）
+
+2. 工具卡片要求
+
+// 示例工具数据
+{
+  id: "face-generator",        // 工具ID
+  name: "AI人像生成",         // 工具名称
+  description: "使用AI生成独特的人像图片",  // 简短描述
+  icon: "🎨",                  // 图标（emoji或图片）
+  path: "tools/face-generator/index.html"  // 工具页面路径
+}
+
+
+3. 第一版包含工具
+
+1. AI人像生成（已提供，路径：C:\Users\smith\Downloads\generate_face-main\generate_face-main\index.html）
+2. AI起名助手（待开发）
+3. AI营养分析师（待开发）
+
+技术方案
+
+• 纯静态HTML/CSS/JS网站
+
+• 无后端，无数据库
+
+• 工具页面独立HTML文件
+
+文件结构
+
+
+项目根目录/
+├── index.html              # 网站首页
+├── style.css               # 样式文件
+├── script.js               # 脚本文件
+├── tools/                  # 工具页面目录
+│   ├── face-generator/    # AI人像生成
+│   │   └── index.html
+│   ├── ai-namer/          # AI起名助手
+│   │   └── index.html
+│   └── nutrition-analyst/ # AI营养分析师
+│       └── index.html
+└── assets/                 # 资源文件
+    └── icons/              # 图标
+
+
+开发步骤
+
+1. 创建基础HTML框架
+2. 设计工具卡片样式
+3. 集成人像生成工具
+4. 开发其他两个工具页面
+5. 测试和优化
+
+视觉要求
+
+• 简洁现代的设计
+
+• 卡片有悬停效果
+
+• 统一的配色方案
+
+• 良好的加载速度
+
