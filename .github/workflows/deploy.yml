@@ -2,7 +2,7 @@ name: Deploy to Server
 
 on:
   push:
-    branches: [ main ]  # 指定触发分支
+    branches: [ main ]
 
 jobs:
   deploy:
@@ -12,7 +12,6 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       
-    # 部署到服务器（核心步骤）
     - name: Deploy via SSH
       uses: appleboy/ssh-action@v0.1.10
       with:
@@ -26,11 +25,11 @@ jobs:
           # 进入部署目录
           cd ${{ secrets.DEPLOY_PATH }}
           
-          # 清除旧文件（保留必要的配置文件）
+          # 清除旧文件
           rm -rf *
           
           # 复制新文件到服务器
-          git clone ${{ github.repository }} .
+          git clone https://github.com/SKingMan/ToolsBox.git .
           
           # 检查部署状态
           ls -la
