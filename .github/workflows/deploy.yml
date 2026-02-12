@@ -1,0 +1,38 @@
+name: Deploy to Server
+
+on:
+  push:
+    branches: [ main ]  # 指定触发分支
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    # 部署到服务器（核心步骤）
+    - name: Deploy via SSH
+      uses: appleboy/ssh-action@v0.1.10
+      with:
+        host: ${{ secrets.SERVER_HOST }}
+        username: ${{ secrets.SERVER_USER }}
+        key: ${{ secrets.SSH_PRIVATE_KEY }}
+        script: |
+          # 确保部署目录存在
+          mkdir -p ${{ secrets.DEPLOY_PATH }}
+          
+          # 进入部署目录
+          cd ${{ secrets.DEPLOY_PATH }}
+          
+          # 清除旧文件（保留必要的配置文件）
+          rm -rf *
+          
+          # 复制新文件到服务器
+          git clone ${{ github.repository }} .
+          
+          # 检查部署状态
+          ls -la
+          
+          echo "Deploy completed successfully!"
