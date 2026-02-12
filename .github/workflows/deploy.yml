@@ -12,28 +12,25 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
       
-    - name: Debug secrets
+    - name: Create deployment script
       run: |
-        echo "SERVER_HOST exists: ${{ secrets.SERVER_HOST != '' }}"
-        echo "SERVER_USER exists: ${{ secrets.SERVER_USER != '' }}"
-        echo "DEPLOY_PATH exists: ${{ secrets.DEPLOY_PATH != '' }}"
-      
-    - name: Deploy to server
-      uses: easingthemes/ssh-deploy@v2.1.5
-      with:
-        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-        ARGS: "-rltgoDzvO --delete"
-        SOURCE: "."
-        REMOTE_HOST: ${{ secrets.SERVER_HOST }}
-        REMOTE_USER: ${{ secrets.SERVER_USER }}
-        TARGET: ${{ secrets.DEPLOY_PATH }}
+        echo "#!/bin/bash" > deploy.sh
+        echo "mkdir -p /mnt/toolbox" >> deploy.sh
+        echo "cd /mnt/toolbox" >> deploy.sh
+        echo "rm -rf *" >> deploy.sh
+        echo "git clone https://github.com/SKingMan/ToolsBox.git ." >> deploy.sh
+        echo "ls -la" >> deploy.sh
+        echo "echo 'Deploy completed!'" >> deploy.sh
+        chmod +x deploy.sh
         
-    - name: Verify deployment
-      uses: appleboy/ssh-action@master
-      with:
-        host: ${{ secrets.SERVER_HOST }}
-        username: ${{ secrets.SERVER_USER }}
-        key: ${{ secrets.SSH_PRIVATE_KEY }}
-        script: |
-          ls -la ${{ secrets.DEPLOY_PATH }}
-          echo "Deployment verification complete!"
+    - name: Deploy using scp and ssh
+      run: |
+        # Transfer deployment script
+        scp -o StrictHostKeyChecking=no -i <(echo "$SSH_PRIVATE_KEY") deploy.sh $SERVER_USER@$SERVER_HOST:~/
+        
+        # Execute deployment script
+        ssh -o StrictHostKeyChecking=no -i <(echo "$SSH_PRIVATE_KEY") $SERVER_USER@$SERVER_HOST "~/deploy.sh"
+      env:
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        SERVER_USER: ${{ secrets.SERVER_USER }}
+        SERVER_HOST: ${{ secrets.SERVER_HOST }}
