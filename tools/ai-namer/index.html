@@ -225,24 +225,78 @@
             resultDiv.innerHTML = '<div class="loading">正在生成名字，请稍候...</div>';
             
             try {
-                // 模拟AI生成名字的过程
-                await new Promise(resolve => setTimeout(resolve, 1500));
-                
-                // 生成示例名字
-                const sampleNames = generateSampleNames(nameType, nameLength, keywords);
-                
-                // 显示结果
-                resultDiv.innerHTML = `
-                    <h3>生成的名字</h3>
-                    <div class="name-list">
-                        ${sampleNames.map(name => `
-                            <div class="name-item">
-                                <span>${name}</span>
-                                <button class="copy-btn" onclick="copyToClipboard('${name}')">复制</button>
-                            </div>
-                        `).join('')}
-                    </div>
-                `;
+                // 构建请求内容
+                let prompt = `请为我生成${nameLength}字的${getTypeName(nameType)}`;
+                if (keywords) {
+                    prompt += `，包含关键词：${keywords}`;
+                }
+                if (requirements) {
+                    prompt += `，要求：${requirements}`;
+                }
+                prompt += `。请生成10个名字，每个名字占一行。`;
+
+                const response = await fetch('https://api.coze.cn/v3/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer pat_czCrM3HCXzMkHqvTx1oGLM40masX8cdfuZ7CfRKV15cWIpKp6FHZm3ekcFMzML04',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        bot_id: '7478584611401416743',
+                        user_id: '123456789',
+                        stream: true,
+                        auto_save_history: true,
+                        additional_messages: [
+                            {
+                                role: 'user',
+                                content: prompt,
+                                content_type: 'text'
+                            }
+                        ]
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+                let fullContent = '';
+
+                while (true) {
+                    const {value, done} = await reader.read();
+                    if (done) break;
+                    
+                    buffer += decoder.decode(value);
+                    const events = buffer.split('\n\n');
+                    buffer = events.pop() || '';
+
+                    for (const event of events) {
+                        if (!event.trim()) continue;
+                        
+                        const lines = event.split('\n');
+                        const eventType = lines[0].slice(6);
+                        const jsonData = lines[1].slice(5);
+
+                        if (eventType === 'conversation.message.delta') {
+                            try {
+                                const data = JSON.parse(jsonData);
+                                if (data.content) {
+                                    fullContent += data.content;
+                                    // 实时更新显示
+                                    resultDiv.innerHTML = `<h3>生成的名字</h3><div class="name-list">${formatNames(fullContent)}</div>`;
+                                }
+                            } catch (e) {
+                                console.error('JSON解析错误:', e);
+                            }
+                        }
+                    }
+                }
+
+                // 最终处理结果
+                resultDiv.innerHTML = `<h3>生成的名字</h3><div class="name-list">${formatNames(fullContent)}</div>`;
             } catch (error) {
                 resultDiv.innerHTML = `<div class="error">错误: ${error.message}</div>`;
                 console.error('Error:', error);
@@ -251,32 +305,26 @@
             }
         }
         
-        function generateSampleNames(type, length, keywords) {
-            const nameDatabase = {
-                person: ['星辰', '雨桐', '浩然', '梦琪', '子轩', '诗涵', '宇轩', '雨萱', '梓涵', '俊杰'],
-                company: ['科技创新', '未来发展', '星辰大海', '智慧时代', '绿色能源', '数字经济', '创意无限', '梦想启航'],
-                product: ['智能助手', '未来手机', '环保水杯', '创意灯具', '健康手环', '智能音箱', '便携充电宝'],
-                pet: ['小白', '小黑', '花花', '贝贝', '豆豆', '毛毛', '球球', '布丁', '奶茶', '可乐'],
-                other: ['创意空间', '梦想工作室', '未来实验室', '智慧乐园', '快乐星球', '神秘花园']
+        function getTypeName(type) {
+            const typeMap = {
+                person: '人名',
+                company: '公司名',
+                product: '产品名',
+                pet: '宠物名',
+                other: '其他名字'
             };
-            
-            const names = nameDatabase[type] || nameDatabase.other;
-            const result = [];
-            
-            // 生成10个名字
-            for (let i = 0; i < 10; i++) {
-                let name = '';
-                const randomCount = length === '2' ? 2 : length === '3' ? 3 : length === '4' ? 4 : Math.floor(Math.random() * 3) + 5;
-                
-                for (let j = 0; j < randomCount; j++) {
-                    const randomWord = names[Math.floor(Math.random() * names.length)];
-                    name += randomWord.charAt(Math.floor(Math.random() * randomWord.length));
-                }
-                
-                result.push(name);
-            }
-            
-            return result;
+            return typeMap[type] || '名字';
+        }
+        
+        function formatNames(content) {
+            // 将文本按行分割，生成名字列表
+            const names = content.split('\n').filter(name => name.trim());
+            return names.map(name => `
+                <div class="name-item">
+                    <span>${name.trim()}</span>
+                    <button class="copy-btn" onclick="copyToClipboard('${name.trim()}')">复制</button>
+                </div>
+            `).join('');
         }
         
         function copyToClipboard(text) {

@@ -206,44 +206,71 @@
             resultDiv.innerHTML = '<div class="loading">正在分析营养成分，请稍候...</div>';
             
             try {
-                // 模拟AI分析营养的过程
-                await new Promise(resolve => setTimeout(resolve, 1500));
-                
-                // 生成示例营养分析结果
-                const nutritionData = generateNutritionData(foodInput);
-                
-                // 显示结果
-                resultDiv.innerHTML = `
-                    <h3>营养分析结果</h3>
-                    <div class="nutrition-info">
-                        <div class="nutrition-section">
-                            <h3>基本营养成分</h3>
-                            ${nutritionData.basicNutrition.map(item => `
-                                <div class="nutrition-item">
-                                    <span class="nutrition-label">${item.label}</span>
-                                    <span class="nutrition-value">${item.value}</span>
-                                </div>
-                            `).join('')}
-                        </div>
+                // 构建请求内容
+                const prompt = `请为我分析以下食物的营养成分：${foodInput}。请包括：1. 基本营养成分（热量、蛋白质、脂肪、碳水化合物、膳食纤维、糖分等）2. 维生素和矿物质含量 3. 健康建议。请以结构化的方式回答，便于我在网页上显示。`;
+
+                const response = await fetch('https://api.coze.cn/v3/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Authorization': 'Bearer pat_czCrM3HCXzMkHqvTx1oGLM40masX8cdfuZ7CfRKV15cWIpKp6FHZm3ekcFMzML04',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        bot_id: '7478584611401416743',
+                        user_id: '123456789',
+                        stream: true,
+                        auto_save_history: true,
+                        additional_messages: [
+                            {
+                                role: 'user',
+                                content: prompt,
+                                content_type: 'text'
+                            }
+                        ]
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let buffer = '';
+                let fullContent = '';
+
+                while (true) {
+                    const {value, done} = await reader.read();
+                    if (done) break;
+                    
+                    buffer += decoder.decode(value);
+                    const events = buffer.split('\n\n');
+                    buffer = events.pop() || '';
+
+                    for (const event of events) {
+                        if (!event.trim()) continue;
                         
-                        <div class="nutrition-section">
-                            <h3>维生素和矿物质</h3>
-                            ${nutritionData.vitaminsMinerals.map(item => `
-                                <div class="nutrition-item">
-                                    <span class="nutrition-label">${item.label}</span>
-                                    <span class="nutrition-value">${item.value}</span>
-                                </div>
-                            `).join('')}
-                        </div>
-                        
-                        <div class="health-tips">
-                            <h4>健康建议</h4>
-                            <ul>
-                                ${nutritionData.healthTips.map(tip => `<li>${tip}</li>`).join('')}
-                            </ul>
-                        </div>
-                    </div>
-                `;
+                        const lines = event.split('\n');
+                        const eventType = lines[0].slice(6);
+                        const jsonData = lines[1].slice(5);
+
+                        if (eventType === 'conversation.message.delta') {
+                            try {
+                                const data = JSON.parse(jsonData);
+                                if (data.content) {
+                                    fullContent += data.content;
+                                    // 实时更新显示
+                                    resultDiv.innerHTML = formatNutritionResult(fullContent);
+                                }
+                            } catch (e) {
+                                console.error('JSON解析错误:', e);
+                            }
+                        }
+                    }
+                }
+
+                // 最终处理结果
+                resultDiv.innerHTML = formatNutritionResult(fullContent);
             } catch (error) {
                 resultDiv.innerHTML = `<div class="error">错误: ${error.message}</div>`;
                 console.error('Error:', error);
@@ -252,38 +279,22 @@
             }
         }
         
-        function generateNutritionData(foodInput) {
-            // 示例营养数据
-            const basicNutrition = [
-                { label: '热量', value: '52 kcal' },
-                { label: '蛋白质', value: '0.3 g' },
-                { label: '脂肪', value: '0.2 g' },
-                { label: '碳水化合物', value: '13.8 g' },
-                { label: '膳食纤维', value: '2.4 g' },
-                { label: '糖分', value: '10.4 g' }
-            ];
-            
-            const vitaminsMinerals = [
-                { label: '维生素C', value: '4.6 mg' },
-                { label: '维生素A', value: '3 μg' },
-                { label: '钾', value: '107 mg' },
-                { label: '钙', value: '6 mg' },
-                { label: '铁', value: '0.12 mg' }
-            ];
-            
-            const healthTips = [
-                '苹果富含膳食纤维，有助于促进肠道健康',
-                '建议每天食用1-2个苹果，有助于维持健康体重',
-                '苹果中的抗氧化物质有助于保护细胞免受损伤',
-                '食用苹果时最好连皮一起吃，因为果皮中含有更多的营养物质',
-                '糖尿病患者应注意控制食用量，因为苹果含有一定的糖分'
-            ];
-            
-            return {
-                basicNutrition,
-                vitaminsMinerals,
-                healthTips
-            };
+        function formatNutritionResult(content) {
+            // 简单的格式化，实际应用中可能需要更复杂的解析
+            return `
+                <h3>营养分析结果</h3>
+                <div class="nutrition-info">
+                    <div class="nutrition-section">
+                        <h3>分析结果</h3>
+                        <div style="white-space: pre-wrap; line-height: 1.6;">${content}</div>
+                    </div>
+                    
+                    <div class="health-tips">
+                        <h4>健康建议</h4>
+                        <p>以上分析基于AI模型生成，仅供参考。如有健康问题，请咨询专业医生。</p>
+                    </div>
+                </div>
+            `;
         }
     </script>
 </body>

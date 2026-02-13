@@ -60,10 +60,13 @@ function generateToolCards(tools = toolsData) {
         return;
     }
     
-    tools.forEach(tool => {
+    tools.forEach((tool, index) => {
         const card = document.createElement('div');
         card.className = 'tool-card';
         card.onclick = () => window.location.href = tool.path;
+        
+        // 为动态生成的卡片添加动画延迟
+        card.style.animationDelay = `${0.2 + index * 0.2}s`;
         
         card.innerHTML = `
             <div class="tool-icon">${tool.icon}</div>
